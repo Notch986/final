@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campo Magnético</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .visualization-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .canvas-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        canvas {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.9);
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 150px;
+            margin: 5px 0;
+        }
+        .info {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: left;
+            backdrop-filter: blur(5px);
+        }
+        .physics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .physics-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .formula {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+        .current-symbol {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .symbol {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧲 Campo Magnético de Corrientes Paralelas</h1>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="symbol" style="background: #e74c3c; color: white;">⊙</div>
+                <span>Corriente hacia afuera (I > 0)</span>
+            </div>
+            <div class="legend-item">
+                <div class="symbol" style="background: #3498db; color: white;">⊗</div>
+                <span>Corriente hacia adentro (I < 0)</span>
+            </div>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="canvas-container">
+                <h3>🌀 Campo Magnético Vectorial</h3>
+                <canvas id="fieldCanvas" width="600" height="600"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h3>🔄 Líneas de Campo</h3>
+                <canvas id="linesCanvas" width="600" height="600"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="I1">Corriente 1: <span id="I1-value">1.0</span></label>
+                <input type="range" id="I1" min="-3" max="3" step="0.1" value="1">
+            </div>
+            <div class="control-group">
+                <label for="I2">Corriente 2: <span id="I2-value">-1.0</span></label>
+                <input type="range" id="I2" min="-3" max="3" step="0.1" value="-1">
+            </div>
+            <div class="control-group">
+                <label for="separation">Separación: <span id="sep-value">4.0</span></label>
+                <input type="range" id="separation" min="2" max="8" step="0.5" value="4">
+            </div>
+            <div class="control-group">
+                <label for="scale">Escala: <span id="scale-value">1.0</span></label>
+                <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>🔬 Física del Campo Magnético</h3>
+            
+            <div class="physics-grid">
+                <div class="physics-item">
+                    <h4>📐 Ley de Biot-Savart</h4>
+                    <div class="formula">B⃗ = (μ₀I/2πr) φ̂</div>
+                    <p>Para una corriente infinita, el campo magnético:</p>
+                    <ul>
+                        <li>Es proporcional a la corriente I</li>
+                        <li>Decrece como 1/r</li>
+                        <li>Es tangencial (perpendicular a r⃗)</li>
+                    </ul>
+                </div>
+                
+                <div class="physics-item">
+                    <h4>🌀 Regla de la Mano Derecha</h4>
+                    <div class="formula">
+                        Bx = -I × y/r²<br>
+                        By = +I × x/r²
+                    </div>
+                    <p>Componentes cartesianas:</p>
+                    <ul>
+                        <li><strong>I > 0:</strong> Campo antihorario ⊙</li>
+                        <li><strong>I < 0:</strong> Campo horario ⊗</li>
+                        <li><strong>Superposición:</strong> B⃗ = B⃗₁ + B⃗₂</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4>🎯 Configuraciones Interesantes:</h4>
+            <ul>
+                <li><strong>Corrientes opuestas (I₁ = -I₂):</strong> Atracción mutua, campos se cancelan en el centro</li>
+                <li><strong>Corrientes iguales (I₁ = I₂):</strong> Repulsión mutua, campo nulo entre conductores</li>
+                <li><strong>Una corriente nula:</strong> Campo circular puro alrededor de la corriente restante</li>
+                <li><strong>Corrientes muy separadas:</strong> Dos sistemas independientes</li>
+            </ul>
+
+            <div class="formula">
+                Diferencia clave: Las líneas de campo magnético son CERRADAS
+                (no tienen principio ni fin, a diferencia del campo eléctrico)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fieldCanvas = document.getElementById('fieldCanvas');
+        const linesCanvas = document.getElementById('linesCanvas');
+        const fieldCtx = fieldCanvas.getContext('2d');
+        const linesCtx = linesCanvas.getContext('2d');
+        
+        // Controls
+        const I1Slider = document.getElementById('I1');
+        const I2Slider = document.getElementById('I2');
+        const sepSlider = document.getElementById('separation');
+        const scaleSlider = document.getElementById('scale');
+        const I1Value = document.getElementById('I1-value');
+        const I2Value = document.getElementById('I2-value');
+        const sepValue = document.getElementById('sep-value');
+        const scaleValue = document.getElementById('scale-value');
+
+        // Parameters
+        let I1 = 1.0;
+        let I2 = -1.0;
+        let separation = 4.0;
+        let vectorScale = 1.0;
+
+        // Grid parameters
+        const gridSize = 25;
+        const canvasSize = 600;
+        const worldSize = 20; // -10 to 10
+
+        function worldToCanvas(x, y) {
+            const canvasX = (x + worldSize/2) * (canvasSize / worldSize);
+            const canvasY = (-y + worldSize/2) * (canvasSize / worldSize);
+            return [canvasX, canvasY];
+        }
+
+        function calculateMagneticField(x, y) {
+            // Position of currents
+            const x1 = 0, y1 = 0;  // Current 1 at origin
+            const x2 = separation, y2 = 0;  // Current 2 at (separation, 0)
+            
+            // Distance from current 1
+            const r1_sq = x*x + y*y;
+            const r1 = Math.sqrt(r1_sq);
+            
+            // Distance from current 2
+            const dx2 = x - x2;
+            const r2_sq = dx2*dx2 + y*y;
+            const r2 = Math.sqrt(r2_sq);
+            
+            // Avoid singularities
+            const minR = 0.2;
+            if (r1 < minR || r2 < minR) return [0, 0];
+            
+            // Magnetic field from current 1 (Biot-Savart law)
+            const Bx1 = -I1 * y / r1_sq;
+            const By1 = +I1 * x / r1_sq;
+            
+            // Magnetic field from current 2
+            const Bx2 = -I2 * y / r2_sq;
+            const By2 = +I2 * dx2 / r2_sq;
+            
+            // Total field
+            const Bx = Bx1 + Bx2;
+            const By = By1 + By2;
+            
+            return [Bx, By];
+        }
+
+        function drawArrow(ctx, startX, startY, endX, endY, color = '#00ffff') {
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const length = Math.sqrt(dx*dx + dy*dy);
+            
+            if (length < 1) return;
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+            
+            // Arrow body
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Arrow head
+            const headLength = Math.min(8, length * 0.3);
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI/6), 
+                      endY - headLength * Math.sin(angle - Math.PI/6));
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI/6), 
+                      endY - headLength * Math.sin(angle + Math.PI/6));
+            ctx.stroke();
+        }
+
+        function drawCurrent(ctx, x, y, current, label) {
+            const [canvasX, canvasY] = worldToCanvas(x, y);
+            
+            // Draw current symbol
+            if (current > 0) {
+                // Current out of page (dot)
+                ctx.fillStyle = '#e74c3c';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 15, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Dot symbol
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Label
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⊙', canvasX, canvasY + 7);
+            } else if (current < 0) {
+                // Current into page (cross)
+                ctx.fillStyle = '#3498db';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 15, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Cross symbol
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(canvasX - 8, canvasY - 8);
+                ctx.lineTo(canvasX + 8, canvasY + 8);
+                ctx.moveTo(canvasX + 8, canvasY - 8);
+                ctx.lineTo(canvasX - 8, canvasY + 8);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⊗', canvasX, canvasY + 7);
+            } else {
+                // No current
+                ctx.fillStyle = '#666666';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 12, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // Current value
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`I=${current.toFixed(1)}`, canvasX, canvasY + 35);
+        }
+
+        function drawFieldVectors() {
+            fieldCtx.clearRect(0, 0, canvasSize, canvasSize);
+            
+            // Draw grid
+            fieldCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            fieldCtx.lineWidth = 1;
+            for (let i = 0; i <= gridSize; i++) {
+                const pos = i * (canvasSize / gridSize);
+                fieldCtx.beginPath();
+                fieldCtx.moveTo(pos, 0);
+                fieldCtx.lineTo(pos, canvasSize);
+                fieldCtx.stroke();
+                fieldCtx.beginPath();
+                fieldCtx.moveTo(0, pos);
+                fieldCtx.lineTo(canvasSize, pos);
+                fieldCtx.stroke();
+            }
+            
+            // Draw magnetic field vectors
+            const step = worldSize / (gridSize - 1);
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const x = -worldSize/2 + i * step;
+                    const y = -worldSize/2 + j * step;
+                    
+                    const [Bx, By] = calculateMagneticField(x, y);
+                    
+                    const magnitude = Math.sqrt(Bx*Bx + By*By);
+                    if (magnitude > 0.001) {
+                        const scaledBx = Bx * vectorScale * 15 / magnitude;
+                        const scaledBy = By * vectorScale * 15 / magnitude;
+                        
+                        const [startX, startY] = worldToCanvas(x, y);
+                        const [endX, endY] = worldToCanvas(x + scaledBx/15, y + scaledBy/15);
+                        
+                        // Color based on magnitude
+                        const intensity = Math.min(1, magnitude * 2);
+                        const cyan = Math.floor(255 * intensity);
+                        const color = `rgb(0, ${cyan}, ${cyan})`;
+                        
+                        drawArrow(fieldCtx, startX, startY, endX, endY, color);
+                    }
+                }
+            }
+            
+            // Draw currents
+            drawCurrent(fieldCtx, 0, 0, I1, 'I₁');
+            drawCurrent(fieldCtx, separation, 0, I2, 'I₂');
+            
+            // Draw axes
+            drawAxes(fieldCtx);
+        }
+
+        function drawFieldLines() {
+            linesCtx.clearRect(0, 0, canvasSize, canvasSize);
+            
+            // Draw field lines by following the field direction
+            const numLines = 8;
+            const radiusStart = 1.0;
+            
+            for (let line = 0; line < numLines; line++) {
+                const angle = (line / numLines) * 2 * Math.PI;
+                
+                // Start near current 1
+                let x = radiusStart * Math.cos(angle);
+                let y = radiusStart * Math.sin(angle);
+                
+                linesCtx.strokeStyle = '#ffff00';
+                linesCtx.lineWidth = 2;
+                linesCtx.beginPath();
+                
+                let [canvasX, canvasY] = worldToCanvas(x, y);
+                linesCtx.moveTo(canvasX, canvasY);
+                
+                // Follow the field line
+                for (let step = 0; step < 200; step++) {
+                    const [Bx, By] = calculateMagneticField(x, y);
+                    const magnitude = Math.sqrt(Bx*Bx + By*By);
+                    
+                    if (magnitude < 0.001) break;
+                    
+                    const stepSize = 0.1;
+                    x += (Bx / magnitude) * stepSize;
+                    y += (By / magnitude) * stepSize;
+                    
+                    // Check bounds
+                    if (Math.abs(x) > worldSize/2 || Math.abs(y) > worldSize/2) break;
+                    
+                    [canvasX, canvasY] = worldToCanvas(x, y);
+                    linesCtx.lineTo(canvasX, canvasY);
+                }
+                
+                linesCtx.stroke();
+            }
+            
+            // Start near current 2 if it exists
+            if (Math.abs(I2) > 0.1) {
+                for (let line = 0; line < numLines; line++) {
+                    const angle = (line / numLines) * 2 * Math.PI;
+                    
+                    let x = separation + radiusStart * Math.cos(angle);
+                    let y = radiusStart * Math.sin(angle);
+                    
+                    linesCtx.strokeStyle = '#ff9500';
+                    linesCtx.lineWidth = 2;
+                    linesCtx.beginPath();
+                    
+                    let [canvasX, canvasY] = worldToCanvas(x, y);
+                    linesCtx.moveTo(canvasX, canvasY);
+                    
+                    for (let step = 0; step < 200; step++) {
+                        const [Bx, By] = calculateMagneticField(x, y);
+                        const magnitude = Math.sqrt(Bx*Bx + By*By);
+                        
+                        if (magnitude < 0.001) break;
+                        
+                        const stepSize = 0.1;
+                        x += (Bx / magnitude) * stepSize;
+                        y += (By / magnitude) * stepSize;
+                        
+                        if (Math.abs(x) > worldSize/2 || Math.abs(y) > worldSize/2) break;
+                        
+                        [canvasX, canvasY] = worldToCanvas(x, y);
+                        linesCtx.lineTo(canvasX, canvasY);
+                    }
+                    
+                    linesCtx.stroke();
+                }
+            }
+            
+            // Draw currents
+            drawCurrent(linesCtx, 0, 0, I1, 'I₁');
+            drawCurrent(linesCtx, separation, 0, I2, 'I₂');
+            
+            // Draw axes
+            drawAxes(linesCtx);
+        }
+
+        function drawAxes(ctx) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            
+            const [centerX, centerY] = worldToCanvas(0, 0);
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvasSize, centerY);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvasSize);
+            ctx.stroke();
+        }
+
+        function updateVisualization() {
+            drawFieldVectors();
+            drawFieldLines();
+        }
+
+        // Event listeners
+        I1Slider.addEventListener('input', (e) => {
+            I1 = parseFloat(e.target.value);
+            I1Value.textContent = I1.toFixed(1);
+            updateVisualization();
+        });
+
+        I2Slider.addEventListener('input', (e) => {
+            I2 = parseFloat(e.target.value);
+            I2Value.textContent = I2.toFixed(1);
+            updateVisualization();
+        });
+
+        sepSlider.addEventListener('input', (e) => {
+            separation = parseFloat(e.target.value);
+            sepValue.textContent = separation.toFixed(1);
+            updateVisualization();
+        });
+
+        scaleSlider.addEventListener('input', (e) => {
+            vectorScale = parseFloat(e.target.value);
+            scaleValue.textContent = vectorScale.toFixed(1);
+            updateVisualization();
+        });
+
+        // Initial draw
+        updateVisualization();
